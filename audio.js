@@ -1,7 +1,7 @@
 var player = require('play-sound')(opts = {})
 
-module.exports.play = () => {
-    player.play('audio.mp3', function(err){
+module.exports.play = (file) => {
+    player.play(file, function(err){
         if (err) throw err
       })
 }
