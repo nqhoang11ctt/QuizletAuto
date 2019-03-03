@@ -25,4 +25,4 @@ getwords = (path) => {
 
 getwords("words.csv").then(console.log);
 
-module.exports = getwords;
+module.exports = getwords
