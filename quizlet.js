@@ -5,13 +5,17 @@ const PASSWORD = "3FDzSvzhJAcd5at";
 var WORD_LANGUAGE = "Vietnamese";
 var DEF_LANGUAGE = "English";
 var wordsFile = __dirname + '/words.csv';
+const speak = require(__dirname + '/speak.js');
 
 getwords("words.csv")
 .then(
     async (words) => {
         const browser = await puppeteer.launch({
             headless: false,
-            args: [ '--use-fake-ui-for-media-stream' ]
+            args: [ 
+                '--use-fake-ui-for-media-stream', 
+                '--start-maximized'
+            ]
         });
         const page = await browser.newPage();
         await page.goto('https://quizlet.com/login');
@@ -74,6 +78,42 @@ getwords("words.csv")
         await page.waitFor(1000);
         
         // Record
+
+        // Get all Record buttons
+        BUTTON_SELECTOR = "div.TermContent-side.TermContent-side--word > div > div > label > div > div.UITextarea-addOnContent > div > div > span:nth-child(2) > span > button";
+        let recordButtonsCount = await page.evaluate((sel) => {
+            return document.querySelectorAll(sel).length - 1;
+        }, BUTTON_SELECTOR);
+
+        // console.log("Record Buttons", recordButtons);
+        let WORD_SELECTOR = "div.TermRows > div:nth-child(1) > div:nth-child(INDEX) > div > div.TermContent > div.TermContent-inner > div > div > div.TermContent-side.TermContent-side--word > div > div > label > div > div.AutoExpandTextarea.UITextarea-textarea.UITextarea-autoExpandTextarea.is-nonEmpty > div.AutoExpandTextarea-wrapper.lang-vi > textarea";
+        let REC_SELECTOR = "div.TermRows > div:nth-child(1) > div:nth-child(INDEX) > div > div.TermContent > div.TermContent-inner > div > div > div.TermContent-side.TermContent-side--word > div > div > label > div > div.UITextarea-addOnContent > div > div > span:nth-child(2) > span > button";
+        await page.waitFor(3000);
+        for (let i = 0; i < recordButtonsCount; ++i) {
+            let index = 2 * i + 1;
+            let iWorldSelector = WORD_SELECTOR.replace("INDEX", index);
+            let iRecSelector = REC_SELECTOR.replace("INDEX", index);
+            
+            let word = await page.evaluate((sel)=>{
+                return document.querySelector(sel).value;
+            }, iWorldSelector);
+
+            await page.evaluate((sel)=>{
+                return document.querySelector(sel).click();
+            }, iRecSelector);
+
+            console.log("Current Word:", word);
+            
+            // await page.click(iRecSelector);
+            await page.waitFor(1000);
+            await page.keyboard.down("Space");
+            // // await page.waitFor(1000);
+            await speak(word);
+            await page.waitFor(2000);
+            await page.keyboard.up("Space");
+            await page.waitFor(3000);
+        }
+
     
         // Finally
         const CREATE_SELECTOR  = "div.CreateSetHeader-infoButtonWrap > button";

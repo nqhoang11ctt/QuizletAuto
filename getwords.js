@@ -23,6 +23,6 @@ getwords = (path) => {
     return words;    
 }
 
-getwords("words.csv").then(console.log);
+// getwords("words.csv").then(console.log);
 
 module.exports = getwords
